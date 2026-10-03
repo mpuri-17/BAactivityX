@@ -32,11 +32,11 @@
             </p>
 
 
-            <form id="loginForm" method="post">
+            <form id="loginForm" action="index.html" method="get">
 
                 <div class="form-group">
 
-                    <label for="username">
+                     <label for="username">
                         Username
                     </label>
 
@@ -49,48 +49,42 @@
 
                 </div>
 
-
                 <div class="form-group">
-
+                
                     <label for="login-password">
                         Password
                     </label>
-
-                    <input
-                        type="password"
-                        id="login-password"
-                        name="password"
-                        placeholder="Enter your password"
-                    >
-
-                </div>
-
-
-                <div class="options">
-
-                    <label class="remember">
-
+                
                         <input
-                            type="checkbox"
-                            name="remember"
+                            type="password"
+                            id="login-password"
+                            name="password"
+                            placeholder="Enter your password"
                         >
+                
+                    </div>
+                
+                    <div class="options">
 
-                        Remember me
+                        <label class="remember">
+                            <input
+                                type="checkbox"
+                                name="remember"
+                               >
+                            Remember me
+                        </label>
+                    
+                        <a href="#">Forgot Password?</a>
+                    
+                    </div>
 
-                    </label>
+                    <div id="login-message"></div>
+                    <button type="submit">
+                        Login
+                    </button>
 
-                    <a href="#">
-                        Forgot Password?
-                    </a>
+                </form>
 
-                </div>
-
-
-                <button type="submit">
-                    Login
-                </button>
-
-            </form>
 
 
             <p class="account-text">
@@ -114,57 +108,161 @@
 
 
     <script>
+    $(document).ready(function(){
 
-        $(document).ready(function(){
+        var failedAttempts = 0;
+        var locked = false;
+        var lockoutTime = 30;
+        var countdown;
 
-            $("#loginForm").validate({
+        $("#loginForm").validate({
 
-                rules: {
+            rules: {
 
-                    username: {
-                        required: true,
-                        minlength: 5,
-                        maxlength: 20
-                    },
-
-                    password: {
-                        required: true,
-                        minlength: 7
-                    }
-
+                username: {
+                    required: true,
+                    minlength: 5,
+                    maxlength: 20
                 },
 
+                password: {
+                    required: true,
+                    minlength: 7
+                }
 
-                messages: {
+            },
 
-                    username: {
-                        required: "Username is required",
-                        minlength: "Username must be at least 5 characters long",
-                        maxlength: "Username cannot exceed 20 characters"
-                    },
+            messages: {
 
-                    password: {
-                        required: "Password is required",
-                        minlength: "Password must be at least 7 characters long"
-                    }
-
+                username: {
+                    required: "Username is required",
+                    minlength: "Username must be at least 5 characters long",
+                    maxlength: "Username cannot exceed 20 characters"
                 },
 
+                password: {
+                    required: "Password is required",
+                    minlength: "Password must be at least 7 characters long"
+                }
 
-                errorClass: "error",
+            },
 
+            errorPlacement: function(error, element) {
+                error.insertAfter(element);
+            },
 
-                errorPlacement: function(error, element) {
+            submitHandler: function(form) {
 
-                    error.insertAfter(element);
+                if (locked) {
+                    return false;
+                }
+
+                var username = $("#username").val();
+                var password = $("#login-password").val();
+
+                var savedUsername = localStorage.getItem("username");
+                var savedPassword = localStorage.getItem("password");
+
+                if (username === savedUsername && password === savedPassword) {
+
+                    failedAttempts = 0;
+
+                    $("#login-message")
+                        .removeClass("error")
+                        .addClass("success")
+                        .text("Login successful! Redirecting...")
+                        .show();
+
+                    setTimeout(function(){
+                        window.location.href = "index.html";
+                    }, 1000);
+
+                } else {
+
+                    failedAttempts++;
+
+                    if (failedAttempts < 3) {
+
+                        var remaining = 3 - failedAttempts;
+
+                        $("#login-message")
+                            .removeClass("success")
+                            .addClass("error")
+                            .text(
+                                "Invalid username or password. " +
+                                remaining +
+                                " attempt(s) remaining."
+                            )
+                            .show();
+
+                    } else {
+
+                        locked = true;
+
+                        $("#username").prop("disabled", true);
+                        $("#login-password").prop("disabled", true);
+                        $("button[type='submit']").prop("disabled", true);
+
+                        startLockout();
+                    }
 
                 }
 
-            });
+                return false;
+            }
 
         });
 
-    </script>
+
+        function startLockout() {
+
+            var timeLeft = 30;
+
+            $("#login-message")
+                .removeClass("success")
+                .addClass("error")
+                .text(
+                    "Too many failed attempts. Please wait " +
+                    timeLeft +
+                    " seconds."
+                )
+                .show();
+
+            countdown = setInterval(function(){
+
+                timeLeft--;
+
+                if (timeLeft > 0) {
+
+                    $("#login-message")
+                        .text(
+                            "Too many failed attempts. Please wait " +
+                            timeLeft +
+                            " seconds."
+                        );
+
+                } else {
+
+                    clearInterval(countdown);
+
+                    failedAttempts = 0;
+                    locked = false;
+
+                    $("#username").prop("disabled", false);
+                    $("#login-password").prop("disabled", false);
+                    $("button[type='submit']").prop("disabled", false);
+
+                    $("#login-message")
+                        .removeClass("error")
+                        .text("You can try logging in again.")
+                        .show();
+                }
+
+            }, 1000);
+        }
+
+    });
+</script>
 
 </body>
 </html>
