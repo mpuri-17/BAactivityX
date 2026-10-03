@@ -229,6 +229,33 @@ label.error {
     font-size: 12px;
 }
 
+#login-message {
+    display: none;
+    margin-bottom: 15px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+#login-message.error {
+    display: block;
+    color: #a12632;
+    background: #fff0f1;
+    border: 1px solid #e3a5ab;
+}
+
+#login-message.success {
+    display: block;
+    color: #176b2c;
+    background: #eaf8ed;
+    border: 1px solid #a9d8b3;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
 .remember {
     display: flex;
 
